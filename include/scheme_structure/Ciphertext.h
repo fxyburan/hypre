@@ -44,6 +44,8 @@ public:
   element_s *getComponent(const string &s);
 
   void printCiphertext();
+
+  size_t getCiphertextLen();
 };
 
 #endif //ABELIB_CIPHERTEXT_H

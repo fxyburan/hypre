@@ -6,16 +6,14 @@
 
 #include <utility>
 
-Ciphertext::Ciphertext()
-{
+Ciphertext::Ciphertext() {
   g1_components = new map<string, element_s *>();
   g2_components = new map<string, element_s *>();
   gt_components = new map<string, element_s *>();
   zr_components = new map<string, element_s *>();
 }
 
-Ciphertext::Ciphertext(string policy)
-{
+Ciphertext::Ciphertext(string policy) {
   this->policy = std::move(policy);
 
   g1_components = new map<string, element_s *>();
@@ -24,8 +22,7 @@ Ciphertext::Ciphertext(string policy)
   zr_components = new map<string, element_s *>();
 }
 
-Ciphertext::Ciphertext(access_structure *A)
-{
+Ciphertext::Ciphertext(access_structure *A) {
   this->A = new access_structure(A->getID(), A->getM(), A->getRho(), A->getName());
 
   g1_components = new map<string, element_s *>();
@@ -34,8 +31,7 @@ Ciphertext::Ciphertext(access_structure *A)
   zr_components = new map<string, element_s *>();
 }
 
-Ciphertext::Ciphertext(element_t_matrix *M, map<signed long int, string> *rho)
-{
+Ciphertext::Ciphertext(element_t_matrix *M, map<signed long int, string> *rho) {
   this->A = new access_structure(M, rho);
 
   g1_components = new map<string, element_s *>();
@@ -44,23 +40,19 @@ Ciphertext::Ciphertext(element_t_matrix *M, map<signed long int, string> *rho)
   zr_components = new map<string, element_s *>();
 }
 
-access_structure *Ciphertext::getAccessStructure()
-{
+access_structure *Ciphertext::getAccessStructure() {
   return A;
 }
 
-void Ciphertext::setPolicy(string policyStr)
-{
+void Ciphertext::setPolicy(string policyStr) {
   this->policy = std::move(policyStr);
 }
 
-string Ciphertext::getPolicy()
-{
+string Ciphertext::getPolicy() {
   return policy;
 }
 
-element_s *Ciphertext::getComponent(const string &s, const string &group)
-{
+element_s *Ciphertext::getComponent(const string &s, const string &group) {
   map<string, element_s *>::iterator it;
   if (group == "G1") {
     it = g1_components->find(s);
@@ -94,8 +86,7 @@ element_s *Ciphertext::getComponent(const string &s, const string &group)
   return nullptr;
 }
 
-void Ciphertext::insertComponent(const string &s, const string &group, element_s *component)
-{
+void Ciphertext::insertComponent(const string &s, const string &group, element_s *component) {
   auto *insert_component = new element_t[1];
   element_init_same_as(*insert_component, component);
   element_set(*insert_component, component);
@@ -110,8 +101,7 @@ void Ciphertext::insertComponent(const string &s, const string &group, element_s
   }
 }
 
-map<string, element_s *> *Ciphertext::getComponents(const string &group)
-{
+map<string, element_s *> *Ciphertext::getComponents(const string &group) {
   if (group == "G1") {
     return g1_components;
   } else if (group == "G2") {
@@ -123,8 +113,7 @@ map<string, element_s *> *Ciphertext::getComponents(const string &group)
   }
 }
 
-element_s *Ciphertext::getComponent(const string &s)
-{
+element_s *Ciphertext::getComponent(const string &s) {
   element_s *res;
 
   res = getComponent(s, "G1");
@@ -147,8 +136,29 @@ element_s *Ciphertext::getComponent(const string &s)
   return nullptr;
 }
 
-void Ciphertext::printCiphertext()
-{
+size_t Ciphertext::getCiphertextLen() {
+  size_t len_counter = 0;
+  map<string, element_s *>::iterator it;
+
+  for (it = g1_components->begin(); it != g1_components->end(); ++it) {
+    len_counter += element_length_in_bytes(it->second);
+  }
+
+  for (it = g2_components->begin(); it != g2_components->end(); ++it) {
+    len_counter += element_length_in_bytes(it->second);
+  }
+
+  for (it = gt_components->begin(); it != gt_components->end(); ++it) {
+    len_counter += element_length_in_bytes(it->second);
+  }
+
+  for (it = zr_components->begin(); it != zr_components->end(); ++it) {
+    len_counter += element_length_in_bytes(it->second);
+  }
+  return len_counter;
+}
+
+void Ciphertext::printCiphertext() {
   cout << endl;
   cout << "policy: " << endl;
   cout << policy << endl;

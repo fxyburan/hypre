@@ -23,9 +23,10 @@ void gen_bytes(unsigned char *randomBytes, size_t length) {
 unsigned char *message;
 unsigned char *ciphertext;
 unsigned char *decryptedtext;
-const size_t plaintext_len = 1 << 24;
+static size_t plaintext_len;
 
-int main() {
+void test() {
+  std::cout << "Plaintext size: " << plaintext_len << "(Bytes).\n";
   HyPRE_Impl habpreks;
   auto keys = habpreks.setUp();
   auto *attributes = new vector<string>(0);
@@ -68,20 +69,21 @@ int main() {
 
   message = new unsigned char[plaintext_len];
   gen_bytes(message, plaintext_len);
-  puts("ok");
 
   ciphertext = new unsigned char[plaintext_len + BLOCK_SIZE]; // Buffer for ciphertext
 
   auto enc_st = current_time;
   // Perform encryption
-  puts("ok");
   aes_encrypt(message, plaintext_len, aes_key, iv, ciphertext);
   auto ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
   auto enc_ed = current_time;
   std::cout << "Encryption time: " << duration_time(enc_st, enc_ed) << "(us)\n";
+  std::cout << "IBE CT len: " << ibe_ciphertext->getCiphertextLen() << "(Bytes).\n";
+  std::cout << "AES CT len: " << plaintext_len + BLOCK_SIZE << "(Bytes).\n";
 
   auto rk = habpreks.rkGen(keys->at(1), sk_ID, policyStr);
   auto reEncryptedCT = habpreks.reEnc(keys->at(1), rk, ibe_ciphertext);
+  std::cout << "Re-encrypted CT len: " << reEncryptedCT->getCiphertextLen() << "(Bytes).\n";
 
   auto dec_1_st = current_time;
   auto ibe_plaintext = habpreks.decrypt(ibe_ciphertext, sk_ID, attrID, "identity");
@@ -96,17 +98,29 @@ int main() {
   aes_decrypt(ciphertext, plaintext_len, aes_dec_key, iv, decryptedtext);
   auto aes_dec_ed = current_time;
   std::cout << "IBE decryption time: " << duration_time(dec_1_st, dec_1_ed) << "(us)\n";
+  std::cout << "Total IBE decryption time: " << duration_time(dec_1_st, dec_1_ed) + duration_time(dec_2_ed, aes_dec_ed)
+            << "(us)\n";
+
   std::cout << "Re-encrypted CT decryption time: " << duration_time(dec_1_ed, dec_2_ed) << "(us)\n";
+  std::cout << "Total Re-encrypted CT decryption time: "
+            << duration_time(dec_1_ed, dec_2_ed) + duration_time(dec_2_ed, aes_dec_ed) << "(us)\n";
+
   std::cout << "AES decryption time: " << duration_time(dec_2_ed, aes_dec_ed) << "(us)\n";
 
   for (int i = 0; i < plaintext_len; ++i) {
     assert(message[i] == decryptedtext[i]);
   }
   std::cout << "Decryption correct.\n";
+  std::cout << "-------------------------Test finished-------------------------\n";
 
   delete[] message;
   delete[] ciphertext;
   delete[] decryptedtext;
+}
 
-  return 0;
+int main() {
+  for (int i = 16; i <= 24; i += 2) {
+    plaintext_len = 1 << i;
+    test();
+  }
 }
