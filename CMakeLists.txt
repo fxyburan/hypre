@@ -3,12 +3,12 @@ project(hypre)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include_directories(include)
+
 add_executable(hypre
-        hypre_ks.cpp
-        schemes/hypre_ks/hypre_impl.cpp
-        schemes/hypre_ks/hypre.cpp
-        schemes/ibbpre/ibbpre_impl.cpp
-        schemes/ibbpre/ibbpre.cpp
+        test/hypre_test.cpp
+        schemes/hypre/hypre_impl.cpp
+        schemes/hypre/hypre.cpp
         utils/utils.cpp
         curves/curve_param.cpp
         data_structure/access_structure.cpp data_structure/binary_tree.cpp data_structure/element_t_matrix.cpp

@@ -2,7 +2,7 @@
 // Created by alan on 19-8-30.
 //
 
-#include "access_structure.h"
+#include "data_structure/access_structure.h"
 
 access_structure::access_structure()
 {

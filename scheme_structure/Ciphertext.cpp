@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "Ciphertext.h"
+#include "scheme_structure/Ciphertext.h"
 
 #include <utility>
 

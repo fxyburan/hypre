@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "sar_kgc.h"
+#include "scheme_structure/sar_kgc.h"
 
 sar_kgc::sar_kgc()
 {

@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "extend_math_operation.h"
+#include "extend_math_operation/extend_math_operation.h"
 
 element_t_vector *extend_math_operation::multiply(element_t_matrix *M, element_t_vector *y)
 {

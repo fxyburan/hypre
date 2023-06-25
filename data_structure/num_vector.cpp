@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "num_vector.h"
+#include "data_structure/num_vector.h"
 
 num_vector::num_vector(signed long int len)
 {

@@ -4,7 +4,7 @@
 #include <cassert>
 #include "abe.h"
 #include "symmetric_encryption/aes.hpp"
-#include "schemes/hypre_ks/hypre_impl.hpp"
+#include "schemes/hypre/hypre_impl.hpp"
 
 #define current_time std::chrono::high_resolution_clock::now()
 #define duration_time(start_time, end_time) std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count()

@@ -2,7 +2,7 @@
 // Created by alan on 19-8-19.
 //
 
-#include "Text.h"
+#include "scheme_structure/Text.h"
 
 Text::Text()
 {

@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "abe_ciphertext.h"
+#include "scheme_structure/abe_ciphertext.h"
 
 abe_ciphertext::abe_ciphertext()
 {}

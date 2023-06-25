@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "multiway_tree.h"
+#include "data_structure/multiway_tree.h"
 
 multiway_tree_node::multiway_tree_node()
 {}

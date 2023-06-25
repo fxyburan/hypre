@@ -2,7 +2,7 @@
 // Created by alan on 19-9-3.
 //
 
-#include "SecretKey.h"
+#include "scheme_structure/SecretKey.h"
 
 SecretKey::SecretKey() : Key(Key::SECRET)
 {

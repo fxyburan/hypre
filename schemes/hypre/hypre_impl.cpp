@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <cstdio>
-#include "hypre_impl.hpp"
+#include "schemes/hypre/hypre_impl.hpp"
 
 HyPRE_Impl::HyPRE_Impl() {
   // init pairing

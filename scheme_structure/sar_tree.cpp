@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "sar_tree.h"
+#include "scheme_structure/sar_tree.h"
 
 sar_tree_node::sar_tree_node()
 {

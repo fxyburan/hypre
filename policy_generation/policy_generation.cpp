@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "policy_generation.h"
+#include "policy_generation/policy_generation.h"
 
 void policy_generation::assignAccessToChildInMatrixForm(binary_tree_node *node, signed long int *m)
 {

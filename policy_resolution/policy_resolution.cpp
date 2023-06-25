@@ -2,7 +2,7 @@
 // Created by alan on 19-4-26.
 //
 
-#include "policy_resolution.h"
+#include "policy_resolution/policy_resolution.h"
 
 vector<string> *policy_resolution::infixToPostfix(string infix)
 {

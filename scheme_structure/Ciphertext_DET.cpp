@@ -2,7 +2,7 @@
 // Created by alan on 19-9-18.
 //
 
-#include "Ciphertext_DET.h"
+#include "scheme_structure/Ciphertext_DET.h"
 
 Ciphertext_DET::Ciphertext_DET() : Ciphertext_CET()
 {

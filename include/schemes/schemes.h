@@ -5,6 +5,6 @@
 #ifndef ABELIB_SCHEMES_H
 #define ABELIB_SCHEMES_H
 
-#include "hypre_ks/hypre.hpp"
+#include "hypre/hypre.hpp"
 
 #endif //ABELIB_SCHEMES_H
