@@ -5,9 +5,37 @@
 #include "utils/utils.h"
 
 #include <utility>
+#include <cstring>
 
-element_s *utils::stringToElementT(const string &str, const string &group, pairing_t *pairing)
-{
+element_s *utils::Elem2Elem(element_s *elem, const string &to_type, pairing_t *pairing) {
+  auto *res = new element_t[1];
+
+  auto elem_bytes = new unsigned char[1024];
+  element_to_bytes(elem_bytes, elem);
+
+  if (to_type == "G1") {
+    element_init_G1(*res, *pairing);
+  } else if (to_type == "G2") {
+    element_init_G2(*res, *pairing);
+  } else if (to_type == "GT") {
+    element_init_GT(*res, *pairing);
+  } else if (to_type == "ZR") {
+    element_init_Zr(*res, *pairing);
+  } else {
+    return nullptr;
+  }
+
+  unsigned char hash_str_byte[SHA256_DIGEST_LENGTH];
+  SHA256_CTX sha256;
+  SHA256_Init(&sha256);
+  SHA256_Update(&sha256, elem_bytes, strlen(reinterpret_cast<const char *>(elem_bytes)));
+  SHA256_Final(hash_str_byte, &sha256);
+  element_from_hash(*res, hash_str_byte, SHA256_DIGEST_LENGTH);
+
+  return *res;
+}
+
+element_s *utils::stringToElementT(const string &str, const string &group, pairing_t *pairing) {
   auto *res = new element_t[1];
   if (group == "G1") {
     element_init_G1(*res, *pairing);
@@ -32,8 +60,7 @@ element_s *utils::stringToElementT(const string &str, const string &group, pairi
 }
 
 map<signed long int, signed long int> *utils::attributesMatching(vector<string> *attributes,
-                                                                 map<signed long int, string> *rho)
-{
+                                                                 map<signed long int, string> *rho) {
   auto *res = new map<signed long int, signed long int>;
 
   for (signed long int i = 0; i < attributes->size(); ++i) {
@@ -48,8 +75,7 @@ map<signed long int, signed long int> *utils::attributesMatching(vector<string> 
   return res;
 }
 
-element_t_matrix *utils::getAttributesMatrix(element_t_matrix *M, map<signed long int, signed long int> *rho)
-{
+element_t_matrix *utils::getAttributesMatrix(element_t_matrix *M, map<signed long int, signed long int> *rho) {
   if (0 == M->row() || 0 == M->col()) {
     return nullptr;
   }
@@ -70,8 +96,7 @@ element_t_matrix *utils::getAttributesMatrix(element_t_matrix *M, map<signed lon
   return res;
 }
 
-element_t_matrix *utils::inverse(element_t_matrix *M)
-{
+element_t_matrix *utils::inverse(element_t_matrix *M) {
   if (0 == M->row() || 0 == M->col()) {
     return nullptr;
   }
@@ -87,8 +112,7 @@ element_t_matrix *utils::inverse(element_t_matrix *M)
   return res;
 }
 
-element_t_vector *utils::getCoordinateAxisUnitVector(element_t_matrix *M)
-{
+element_t_vector *utils::getCoordinateAxisUnitVector(element_t_matrix *M) {
   if (0 == M->row() || 0 == M->col()) {
     return nullptr;
   }
@@ -104,8 +128,7 @@ element_t_vector *utils::getCoordinateAxisUnitVector(element_t_matrix *M)
 }
 
 map<signed long int, signed long int> *utils::xToAttributes(element_t_matrix *M,
-                                                            map<signed long int, signed long int> *rho)
-{
+                                                            map<signed long int, signed long int> *rho) {
   if (0 == M->row() || 0 == M->col()) {
     return nullptr;
   }
@@ -175,8 +198,7 @@ map<signed long int, signed long int> *utils::xToAttributes(element_t_matrix *M,
 //    tree->setRoot(new_root);
 //}
 
-void utils::expandSarTree(sar_tree *tree)
-{
+void utils::expandSarTree(sar_tree *tree) {
   queue<sar_tree_node *> q;
   map<sar_tree_node *, sar_tree_node *> m;
 
@@ -224,13 +246,12 @@ void utils::expandSarTree(sar_tree *tree)
   tree->setRoot(new_root);
 }
 
-map<sar_tree_node *, bool> *utils::sarKUNodes(sar_tree *tree)
-{
+map<sar_tree_node *, bool> *utils::sarKUNodes(sar_tree *tree) {
   vector<sar_tree_node *> *rl = tree->getRevokedLeaves();
 
   auto *res = new map<sar_tree_node *, bool>();
 
-  for (auto p: *rl) {
+  for (auto p : *rl) {
     while (nullptr != p) {
       if ((nullptr != p->getLeftChild()) && (!p->getLeftChild()->isRevoked())) {
         auto it = res->find(p->getLeftChild());
@@ -255,8 +276,7 @@ map<sar_tree_node *, bool> *utils::sarKUNodes(sar_tree *tree)
   return res;
 }
 
-void utils::sarRevock(string user_id, sar_kgc *kgc)
-{
+void utils::sarRevock(string user_id, sar_kgc *kgc) {
   sar_tree_node *user_tree_node = kgc->getUserTreeNodeWithTheId(std::move(user_id));
 
   sar_tree_node *p = user_tree_node;
@@ -268,8 +288,7 @@ void utils::sarRevock(string user_id, sar_kgc *kgc)
   kgc->getUserTree()->getRevokedLeaves()->push_back(user_tree_node);
 }
 
-void utils::sarRevock(string user_id, string attribute, sar_kgc *kgc)
-{
+void utils::sarRevock(string user_id, string attribute, sar_kgc *kgc) {
   sar_tree_node *user_tree_node = kgc->getUserTreeNodeWithTheId(std::move(user_id));
 
   sar_tree_node *user_attribute_tree_node = user_tree_node->getAttributeToNode(std::move(attribute));

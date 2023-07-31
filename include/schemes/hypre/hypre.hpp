@@ -8,18 +8,17 @@
 #include "../../basis.h"
 #include "../../scheme_structure/scheme_structure.h"
 
-class HyPRE
-{
-protected:
+class HyPRE {
+ protected:
   pairing_t pairing{};
-public:
+ public:
   pairing_t *getPairing();
 
   virtual vector<Key *> *setUp() = 0;
 
-  virtual Key *keyGen(Key *public_key, Key *master_key, vector<string> *attributes) = 0;
-
   virtual Key *keyGen(Key *public_key, Key *master_key, string identity) = 0;
+
+  virtual Key *keyGen(Key *public_key, Key *master_key, vector<string> *attributes) = 0;
 
   virtual Ciphertext *encrypt(element_s *m, string policy, Key *public_key) = 0;
 

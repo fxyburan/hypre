@@ -9,10 +9,11 @@
 #include "../data_structure/data_structure.h"
 #include "../scheme_structure/scheme_structure.h"
 
-class utils
-{
-public:
+class utils {
+ public:
   static element_s *stringToElementT(const string &str, const string &group, pairing_t *pairing);
+
+  static element_s *Elem2Elem(element_s *elem, const string &to_type, pairing_t *pairing);
 
   static map<signed long int, signed long int> *
   attributesMatching(vector<string> *attributes, map<signed long int, string> *rho);

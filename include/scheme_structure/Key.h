@@ -7,21 +7,20 @@
 
 #include "../basis.h"
 
-class Key
-{
-public:
-  enum key_type
-  {
+class Key {
+ public:
+  enum key_type {
     PUBLIC, MASTER, SECRET
   };
-protected:
+ protected:
   key_type type;
   map<string, element_s *> *g1_components;
   map<string, element_s *> *g2_components;
   map<string, element_s *> *gt_components;
   map<string, element_s *> *zr_components;
+  std::vector<std::string> attributes_;
 
-public:
+ public:
   Key();
 
   Key(Key::key_type type);
@@ -37,6 +36,10 @@ public:
   map<string, element_s *> *getComponents(string group);
 
   element_s *getComponent(string s);
+
+  void SetAttributes(std::vector<std::string> attributes);
+
+  std::vector<std::string> GetAttributes();
 
   void printKey();
 };

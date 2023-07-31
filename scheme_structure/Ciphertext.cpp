@@ -189,3 +189,9 @@ void Ciphertext::printCiphertext() {
   }
   cout << endl;
 }
+std::vector<std::string> Ciphertext::GetAttributes() {
+  return attributes_;
+}
+void Ciphertext::SetAttributes(std::vector<std::string> attributes) {
+  attributes_ = std::move(attributes);
+}

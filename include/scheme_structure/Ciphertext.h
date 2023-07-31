@@ -10,18 +10,22 @@
 #include "../policy_resolution/policy_resolution.h"
 #include "../policy_generation/policy_generation.h"
 
-class Ciphertext
-{
-private:
+class Ciphertext {
+ private:
   string policy;
+  std::vector<std::string> attributes_;
   access_structure *A{};
 
   map<string, element_s *> *g1_components;
   map<string, element_s *> *g2_components;
   map<string, element_s *> *gt_components;
   map<string, element_s *> *zr_components;
-public:
+ public:
   Ciphertext();
+
+  std::vector<std::string> GetAttributes();
+
+  void SetAttributes(std::vector<std::string> attributes);
 
   explicit Ciphertext(string policy);
 

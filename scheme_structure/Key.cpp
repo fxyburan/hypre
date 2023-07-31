@@ -4,16 +4,14 @@
 
 #include "scheme_structure/Key.h"
 
-Key::Key()
-{
+Key::Key() {
   g1_components = new map<string, element_s *>();
   g2_components = new map<string, element_s *>();
   gt_components = new map<string, element_s *>();
   zr_components = new map<string, element_s *>();
 }
 
-Key::Key(Key::key_type type)
-{
+Key::Key(Key::key_type type) {
   this->type = type;
 
   g1_components = new map<string, element_s *>();
@@ -22,18 +20,15 @@ Key::Key(Key::key_type type)
   zr_components = new map<string, element_s *>();
 }
 
-Key::key_type Key::getType()
-{
+Key::key_type Key::getType() {
   return type;
 }
 
-void Key::setType(Key::key_type type)
-{
+void Key::setType(Key::key_type type) {
   this->type = type;
 }
 
-element_s *Key::getComponent(string s, string group)
-{
+element_s *Key::getComponent(string s, string group) {
   map<string, element_s *>::iterator it;
   if (group == "G1") {
     it = g1_components->find(s);
@@ -66,8 +61,7 @@ element_s *Key::getComponent(string s, string group)
   }
 }
 
-void Key::insertComponent(string s, string group, element_s *component)
-{
+void Key::insertComponent(string s, string group, element_s *component) {
   element_t *insert_component = new element_t[1];
   element_init_same_as(*insert_component, component);
   element_set(*insert_component, component);
@@ -82,8 +76,7 @@ void Key::insertComponent(string s, string group, element_s *component)
   }
 }
 
-map<string, element_s *> *Key::getComponents(string group)
-{
+map<string, element_s *> *Key::getComponents(string group) {
   if (group == "G1") {
     return g1_components;
   } else if (group == "G2") {
@@ -95,8 +88,7 @@ map<string, element_s *> *Key::getComponents(string group)
   }
 }
 
-element_s *Key::getComponent(string s)
-{
+element_s *Key::getComponent(string s) {
   element_s *res;
 
   res = getComponent(s, "G1");
@@ -119,8 +111,7 @@ element_s *Key::getComponent(string s)
   return nullptr;
 }
 
-void Key::printKey()
-{
+void Key::printKey() {
   cout << endl;
   map<string, element_s *>::iterator it;
   cout << "G1: " << endl;
@@ -147,4 +138,10 @@ void Key::printKey()
     element_printf("%B\n", it->second);
   }
   cout << endl;
+}
+void Key::SetAttributes(std::vector<std::string> attributes) {
+  attributes_ = std::move(attributes);
+}
+std::vector<std::string> Key::GetAttributes() {
+  return attributes_;
 }

@@ -5,11 +5,11 @@
 #ifndef ABE_HABPREKS_HPP
 #define ABE_HABPREKS_HPP
 
-#include "../../basis.h"
-#include "../../scheme_structure/scheme_structure.h"
-#include "../../extend_math_operation/extend_math_operation.h"
-#include "../../curves/curve_param.h"
-#include "../../utils/utils.h"
+#include "basis.h"
+#include "scheme_structure/scheme_structure.h"
+#include "extend_math_operation/extend_math_operation.h"
+#include "curves/curve_param.h"
+#include "utils/utils.h"
 #include "hypre.hpp"
 
 class HyPRE_Impl : public HyPRE

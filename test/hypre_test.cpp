@@ -25,6 +25,8 @@ unsigned char *ciphertext;
 unsigned char *decryptedtext;
 static size_t plaintext_len;
 
+const int iter_times = 500;
+
 void test() {
   std::cout << "Plaintext size: " << plaintext_len << "(Bytes).\n";
   HyPRE_Impl habpreks;
@@ -43,16 +45,22 @@ void test() {
 
   std::cout << policyStr << "\n";
   auto keygen_s_start = current_time;
-  auto *sk_S = habpreks.keyGen(keys->at(1), keys->at(0), attributes);
+  Key *sk_S;
+  for (int i = 0; i < iter_times; ++i) {
+    sk_S = habpreks.keyGen(keys->at(1), keys->at(0), attributes);
+  }
   auto keygen_s_end = current_time;
   auto keygen_s_duration = duration_time(keygen_s_start, keygen_s_end);
-  std::cout << "Key generation for S: " << keygen_s_duration << "(us)\n";
+  std::cout << "Key generation for S: " << (double) keygen_s_duration / iter_times << "(us)\n";
 
+  Key *sk_ID;
   auto keygen_id_start = current_time;
-  auto *sk_ID = habpreks.keyGen(keys->at(1), keys->at(0), identity);
+  for (int i = 0; i < iter_times; ++i) {
+    sk_ID = habpreks.keyGen(keys->at(1), keys->at(0), identity);
+  }
   auto keygen_id_end = current_time;
   auto keygen_id_duration = duration_time(keygen_id_start, keygen_id_end);
-  std::cout << "Key generation for id: " << keygen_id_duration << "(us)\n";
+  std::cout << "Key generation for id: " << (double) keygen_id_duration / iter_times << "(us)\n";
 
   element_t key_ele;
   element_init_GT(key_ele, reinterpret_cast<pairing_s *>(habpreks.getPairing()));
@@ -81,14 +89,28 @@ void test() {
   std::cout << "IBE CT len: " << ibe_ciphertext->getCiphertextLen() << "(Bytes).\n";
   std::cout << "AES CT len: " << plaintext_len + BLOCK_SIZE << "(Bytes).\n";
 
-  auto rk = habpreks.rkGen(keys->at(1), sk_ID, policyStr);
-  auto reEncryptedCT = habpreks.reEnc(keys->at(1), rk, ibe_ciphertext);
+  auto rkgen_st = current_time;
+  Ciphertext *rk, *reEncryptedCT;
+  for (int i = 0; i < iter_times; ++i) {
+    rk = habpreks.rkGen(keys->at(1), sk_ID, policyStr);
+  }
+  auto rkgen_ed = current_time;
+  for (int i = 0; i < iter_times; ++i) {
+    reEncryptedCT = habpreks.reEnc(keys->at(1), rk, ibe_ciphertext);
+  }
+  auto reenc_ed = current_time;
+  std::cout << "RKGen time: " << (double) duration_time(rkgen_st, rkgen_ed) / iter_times << "(us)\n";
+  std::cout << "ReEncrypt time: " << (double) duration_time(rkgen_ed, reenc_ed) / iter_times << "(us)\n";
   std::cout << "Re-encrypted CT len: " << reEncryptedCT->getCiphertextLen() << "(Bytes).\n";
 
+  element_s *ibe_plaintext, *plaintext2;
   auto dec_1_st = current_time;
-  auto ibe_plaintext = habpreks.decrypt(ibe_ciphertext, sk_ID, attrID, "identity");
+  for (int i = 0; i < iter_times; ++i) {
+    ibe_plaintext = habpreks.decrypt(ibe_ciphertext, sk_ID, attrID, "identity");
+  }
+
   auto dec_1_ed = current_time;
-  auto plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, attributes, "attributes");
+  plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, attributes, "attributes");
   auto dec_2_ed = current_time;
 
   auto *aes_dec_key = new unsigned char[1024];
@@ -97,13 +119,16 @@ void test() {
   decryptedtext = new unsigned char[plaintext_len]; // Buffer for decrypted plaintext
   aes_decrypt(ciphertext, plaintext_len, aes_dec_key, iv, decryptedtext);
   auto aes_dec_ed = current_time;
-  std::cout << "IBE decryption time: " << duration_time(dec_1_st, dec_1_ed) << "(us)\n";
-  std::cout << "Total IBE decryption time: " << duration_time(dec_1_st, dec_1_ed) + duration_time(dec_2_ed, aes_dec_ed)
+  std::cout << "IBE decryption time: " << (double) duration_time(dec_1_st, dec_1_ed) / iter_times << "(us)\n";
+  std::cout << "Total IBE decryption time: "
+            << (double) duration_time(dec_1_st, dec_1_ed) / iter_times + duration_time(dec_2_ed, aes_dec_ed)
             << "(us)\n";
 
-  std::cout << "Re-encrypted CT decryption time: " << duration_time(dec_1_ed, dec_2_ed) << "(us)\n";
+  std::cout << "Re-encrypted CT decryption time: " << (double) duration_time(dec_1_ed, dec_2_ed) / iter_times
+            << "(us)\n";
   std::cout << "Total Re-encrypted CT decryption time: "
-            << duration_time(dec_1_ed, dec_2_ed) + duration_time(dec_2_ed, aes_dec_ed) << "(us)\n";
+            << (double) duration_time(dec_1_ed, dec_2_ed) / iter_times + duration_time(dec_2_ed, aes_dec_ed)
+            << "(us)\n";
 
   std::cout << "AES decryption time: " << duration_time(dec_2_ed, aes_dec_ed) << "(us)\n";
 
