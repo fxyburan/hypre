@@ -18,11 +18,13 @@ ABPRE_Impl::ABPRE_Impl() {
 }
 
 vector<Key *> *ABPRE_Impl::setUp() {
-  std::vector<std::string> U
-      {"a", "b", "c", "d", "e", "f",
-       "g", "h", "i", "j", "k", "l",
-       "m", "n", "o", "p", "q", "r",
-       "s", "t", "u", "v", "w", "x", "y", "y", "z"};
+  const std::vector<std::string> U{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+                                   "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+                                   "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk",
+                                   "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv",
+                                   "ww", "xx", "yy", "zz", "aaa", "bbb", "ccc", "ddd", "eee", "fff",
+                                   "ggg", "hhh", "iii", "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp",
+                                   "qqq", "rrr", "sss", "ttt", "uuu", "vvv", "www", "xxx", "yyy", "zzz"};
 
   element_t g, phi, var_phi, Q;
   element_t alpha, a;

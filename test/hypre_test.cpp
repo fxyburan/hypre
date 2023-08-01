@@ -6,150 +6,96 @@
 #include "symmetric_encryption/aes.hpp"
 #include "schemes/hypre/hypre_impl.hpp"
 
-#define current_time std::chrono::high_resolution_clock::now()
-#define duration_time(start_time, end_time) std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count()
+#define cur_time std::chrono::high_resolution_clock::now()
+#define duration_time(end, start) std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
 
-void gen_bytes(unsigned char *randomBytes, size_t length) {
-  std::random_device rd;
-  std::mt19937 gen(rd()); // Mersenne Twister random number engine
-  std::uniform_int_distribution<int> distribution(0, 255); // Range for random byte (0 to 255)
+const std::vector<std::string> U{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+                                 "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+                                 "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk",
+                                 "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv",
+                                 "ww", "xx", "yy", "zz", "aaa", "bbb", "ccc", "ddd", "eee", "fff",
+                                 "ggg", "hhh", "iii", "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp",
+                                 "qqq", "rrr", "sss", "ttt", "uuu", "vvv", "www", "xxx", "yyy", "zzz"};
 
-  // Generate random bytes
-  for (int i = 0; i < length; ++i) {
-    *(randomBytes + i) = static_cast<unsigned char>(distribution(gen));
-  }
-}
-
-unsigned char *message;
-unsigned char *ciphertext;
-unsigned char *decryptedtext;
-static size_t plaintext_len;
-
-const int iter_times = 500;
-
-void test() {
-  std::cout << "Plaintext size: " << plaintext_len << "(Bytes).\n";
+void test(int iter_times, int attribute_num) {
+  std::cout << "Attribute numbers: " << attribute_num << std::endl;
   HyPRE_Impl habpreks;
   auto keys = habpreks.setUp();
-  auto *attributes = new vector<string>(0);
-  std::string policyStr;
-  for (int attrIdx = 0; attrIdx < 5; ++attrIdx) {
-    attributes->push_back(to_string(attrIdx));
-    if (attrIdx) {
-      policyStr.append("&");
-    }
-    policyStr.append(to_string(attrIdx));
+
+  std::vector<std::string> attributes;
+  for (int i = 0; i < attribute_num; ++i) {
+    attributes.emplace_back(U[i]);
   }
+
+  std::string policy;
+  for (int i = 0; i < attribute_num; ++i) {
+    if (i != 0) {
+      policy.append("|");
+    }
+    policy.append(U[i]);
+  }
+  std::cout << "policy: " << policy << "\n";
+
   string identity = "1801110674";
   auto *attrID = new vector<string>{identity};
 
-  std::cout << policyStr << "\n";
-  auto keygen_s_start = current_time;
   Key *sk_S;
+  auto keygen_s_start = cur_time;
   for (int i = 0; i < iter_times; ++i) {
-    sk_S = habpreks.keyGen(keys->at(1), keys->at(0), attributes);
+    sk_S = habpreks.keyGen(keys->at(1), keys->at(0), &attributes);
   }
-  auto keygen_s_end = current_time;
-  auto keygen_s_duration = duration_time(keygen_s_start, keygen_s_end);
-  std::cout << "Key generation for S: " << (double) keygen_s_duration / iter_times << "(us)\n";
+  auto keygen_s_end = cur_time;
 
   Key *sk_ID;
-  auto keygen_id_start = current_time;
+  auto keygen_id_start = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     sk_ID = habpreks.keyGen(keys->at(1), keys->at(0), identity);
   }
-  auto keygen_id_end = current_time;
-  auto keygen_id_duration = duration_time(keygen_id_start, keygen_id_end);
-  std::cout << "Key generation for id: " << (double) keygen_id_duration / iter_times << "(us)\n";
+  auto keygen_id_end = cur_time;
 
   element_t key_ele;
   element_init_GT(key_ele, reinterpret_cast<pairing_s *>(habpreks.getPairing()));
   element_random(key_ele);
 
-  auto *aes_key = new unsigned char[1024];
-  element_to_bytes(aes_key, key_ele);
-
-  // Initialize OpenSSL library
-  OpenSSL_add_all_algorithms();
-
-  const int BLOCK_SIZE = AES_BLOCK_SIZE; // Block size in bytes
-  unsigned char iv[] = "0123456789abcdef";
-
-  message = new unsigned char[plaintext_len];
-  gen_bytes(message, plaintext_len);
-
-  ciphertext = new unsigned char[plaintext_len + BLOCK_SIZE]; // Buffer for ciphertext
-
-  auto enc_st = current_time;
-  // Perform encryption
-  aes_encrypt(message, plaintext_len, aes_key, iv, ciphertext);
+  auto enc_st = cur_time;
   auto ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
-  auto enc_ed = current_time;
-  std::cout << "Encryption time: " << duration_time(enc_st, enc_ed) << "(us)\n";
-  std::cout << "IBE CT len: " << ibe_ciphertext->getCiphertextLen() << "(Bytes).\n";
-  std::cout << "AES CT len: " << plaintext_len + BLOCK_SIZE << "(Bytes).\n";
+  auto enc_ed = cur_time;
 
-  auto rkgen_st = current_time;
   Ciphertext *rk, *reEncryptedCT;
+  auto rkgen_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
-    rk = habpreks.rkGen(keys->at(1), sk_ID, policyStr);
+    rk = habpreks.rkGen(keys->at(1), sk_ID, policy);
   }
-  auto rkgen_ed = current_time;
+  auto rkgen_ed = cur_time;
+  auto renc_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     reEncryptedCT = habpreks.reEnc(keys->at(1), rk, ibe_ciphertext);
   }
-  auto reenc_ed = current_time;
-  std::cout << "RKGen time: " << (double) duration_time(rkgen_st, rkgen_ed) / iter_times << "(us)\n";
-  std::cout << "ReEncrypt time: " << (double) duration_time(rkgen_ed, reenc_ed) / iter_times << "(us)\n";
-  std::cout << "Re-encrypted CT len: " << reEncryptedCT->getCiphertextLen() << "(Bytes).\n";
+  auto renc_ed = cur_time;
 
   element_s *ibe_plaintext, *plaintext2;
-  auto dec_1_st = current_time;
+  auto dec_ori_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     ibe_plaintext = habpreks.decrypt(ibe_ciphertext, sk_ID, attrID, "identity");
   }
+  auto dec_ori_ed = cur_time;
 
-  auto dec_1_ed = current_time;
-  plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, attributes, "attributes");
-  auto dec_2_ed = current_time;
+  auto dec_re_st = cur_time;
+  plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, &attributes, "attributes");
+  auto dec_re_ed = cur_time;
 
-  auto *aes_dec_key = new unsigned char[1024];
-  element_to_bytes(aes_dec_key, plaintext2);
-  // Perform decryption
-  decryptedtext = new unsigned char[plaintext_len]; // Buffer for decrypted plaintext
-  aes_decrypt(ciphertext, plaintext_len, aes_dec_key, iv, decryptedtext);
-  auto aes_dec_ed = current_time;
-  std::cout << "IBE decryption time: " << (double) duration_time(dec_1_st, dec_1_ed) / iter_times << "(us)\n";
-  std::cout << "Total IBE decryption time: "
-            << (double) duration_time(dec_1_st, dec_1_ed) / iter_times + duration_time(dec_2_ed, aes_dec_ed)
-            << "(us)\n";
-
-  std::cout << "Re-encrypted CT decryption time: " << (double) duration_time(dec_1_ed, dec_2_ed) / iter_times
-            << "(us)\n";
-  std::cout << "Total Re-encrypted CT decryption time: "
-            << (double) duration_time(dec_1_ed, dec_2_ed) / iter_times + duration_time(dec_2_ed, aes_dec_ed)
-            << "(us)\n";
-
-  std::cout << "AES decryption time: " << duration_time(dec_2_ed, aes_dec_ed) << "(us)\n";
-
-  std::cout << "len: " << plaintext_len << "\n";
-  for (int i = 0; i < plaintext_len - 19; ++i) {
-    if (message[i] != decryptedtext[i]) {
-      std::cout << "Decryption failed at index " << i << ".\n";
-      exit(255);
-    }
-  }
-  std::cout << "Decryption correct.\n";
-  std::cout << "-------------------------Test finished-------------------------\n";
-
-  delete[] message;
-  delete[] ciphertext;
-  delete[] decryptedtext;
+  std::cout << "/*************************** Test Results ***************************/\n";
+  std::cout << "Keygen for id time: " << duration_time(keygen_id_end, keygen_id_start) / iter_times << " (us)\n";
+  std::cout << "Keygen for attrs time: " << duration_time(keygen_s_end, keygen_s_start) / iter_times << " (us)\n";
+  std::cout << "Encrypt time: " << duration_time(enc_ed, enc_st) / iter_times << " (us)\n";
+  std::cout << "RKGen time: " << duration_time(rkgen_ed, rkgen_st) / iter_times << " (us)\n";
+  std::cout << "ReEncrypt time: " << duration_time(renc_ed, renc_st) / iter_times << " (us)\n";
+  std::cout << "DecryptOri time: " << duration_time(dec_ori_ed, dec_ori_st) / iter_times << " (us)\n";
+  std::cout << "DecryptRe time: " << duration_time(dec_re_ed, dec_re_st) / iter_times << " (us)\n";
 }
 
 int main() {
-  for (int i = 16; i <= 30; i += 2) {
-    plaintext_len = 1 << i;
-    test();
+  for (int i = 5; i <= 30; i += 5) {
+    test(50, i);
   }
 }
