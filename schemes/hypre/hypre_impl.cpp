@@ -6,11 +6,21 @@
 #include <cstdio>
 #include "schemes/hypre/hypre_impl.hpp"
 
-HyPRE_Impl::HyPRE_Impl() {
+HyPRE_Impl::HyPRE_Impl(int lambda) {
   // init pairing
   pbc_param_t par;
   curve_param curves;
-  pbc_param_init_set_str(par, curve_param::d224_param.c_str());
+  if (lambda == 192) {
+    pbc_param_init_set_str(par, curve_param::secp192r1_param.c_str());
+  } else if (lambda == 224) {
+    pbc_param_init_set_str(par, curve_param::secp224r1_param.c_str());
+  } else if (lambda == 256) {
+    pbc_param_init_set_str(par, curve_param::secp256r1_param.c_str());
+  } else if (lambda == 384) {
+    pbc_param_init_set_str(par, curve_param::secp384r1_param.c_str());
+  } else if (lambda == 521) {
+    pbc_param_init_set_str(par, curve_param::secp521r1_param.c_str());
+  }
 //    pbc_param_init_a_gen(par, 3, 3);
   pairing_init_pbc_param(pairing, par);
 }

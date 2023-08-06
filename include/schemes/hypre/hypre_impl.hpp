@@ -20,7 +20,7 @@ private:
   element_s *decryptS(Ciphertext *ciphertext, Key *secret_key, vector<string> *attributes);
 
 public:
-  HyPRE_Impl();
+  HyPRE_Impl(int lambda);
 
   vector<Key *> *setUp() override;
 
