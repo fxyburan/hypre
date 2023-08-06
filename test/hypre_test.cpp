@@ -19,7 +19,7 @@ const std::vector<std::string> U{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j
 
 void test(int iter_times, int attribute_num) {
   std::cout << "Attribute numbers: " << attribute_num << std::endl;
-  HyPRE_Impl habpreks(192);
+  HyPRE_Impl habpreks;
   auto keys = habpreks.setUp();
 
   std::vector<std::string> attributes;

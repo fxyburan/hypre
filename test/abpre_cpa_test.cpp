@@ -92,6 +92,6 @@ void benchmark(int attribute_num, int iteration_time) {
 }
 
 int main() {
-  benchmark(1, 50);
+  benchmark(30, 50);
   return 0;
 }

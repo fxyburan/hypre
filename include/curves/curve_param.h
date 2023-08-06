@@ -7,8 +7,9 @@
 
 #include "../basis.h"
 
-class curve_param {
- public:
+class curve_param
+{
+public:
   static const string a_param;
   static const string a1_param;
   static const string d159_param;
@@ -21,11 +22,6 @@ class curve_param {
   static const string f_param;
   static const string g149_param;
   static const string i_param;
-  static const string secp192r1_param;
-  static const string secp224r1_param;
-  static const string secp256r1_param;
-  static const string secp384r1_param;
-  static const string secp521r1_param;
 };
 
 #endif //ABELIB_CURVE_PARAM_H
