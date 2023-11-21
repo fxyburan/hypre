@@ -16,8 +16,3 @@ make
 ```
 
 ## 3. Test Results
-
-![](./imgs/cmp_length_scheme-enc.pdf)
-
-![](./imgs/cmp_length_scheme-kgen_s.pdf)
-
