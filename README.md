@@ -16,3 +16,5 @@ make
 ```
 
 ## 3. Test Results
+![](imgs/exp-1.png)
+![](imgs/exp-2.png)
