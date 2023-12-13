@@ -6,20 +6,17 @@
 #define ABE_SYMMETRIC_ENCRYPTION_AES_HPP_
 
 #include <iostream>
-#include <cstring>
-#include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <openssl/rand.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <cstring>
+#include <iomanip>
 
-void aes_encrypt(const unsigned char *plaintext,
-                 int plaintext_len,
-                 const unsigned char *key,
-                 const unsigned char *iv,
-                 unsigned char *ciphertext);
+std::string AESEncrypt(const unsigned char *plaintext, size_t plaintext_length, const unsigned char *key);
 
-void aes_decrypt(const unsigned char *ciphertext,
-                 int ciphertext_len,
-                 const unsigned char *key,
-                 const unsigned char *iv,
-                 unsigned char *plaintext);
+std::string AESDecrypt(const std::string &ciphertext, const unsigned char *key);
+
+void PrintHex(const unsigned char *buffer, size_t length);
 
 #endif //ABE_SYMMETRIC_ENCRYPTION_AES_HPP_

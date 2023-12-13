@@ -3,6 +3,7 @@
 #include <random>
 #include <cassert>
 #include "abe.h"
+#include "symmetric_encryption/aes.hpp"
 #include "schemes/hypre/hypre_impl.hpp"
 
 #define cur_time std::chrono::high_resolution_clock::now()
@@ -56,6 +57,18 @@ void test(int iter_times, int attribute_num) {
   element_init_GT(key_ele, reinterpret_cast<pairing_s *>(habpreks.getPairing()));
   element_random(key_ele);
 
+  unsigned char key[4096];
+  memset(key, 0, sizeof(key));
+
+  element_to_bytes(key, key_ele);
+
+  std::string msg = "This is the plaintext to e.ncrypt.";
+
+  // Encrypt the message using AES
+  std::string aes_ct = AESEncrypt(reinterpret_cast<const unsigned char *>(msg.c_str()), msg.length(), key);
+  std::cout << "Encrypted: ";
+  PrintHex(reinterpret_cast<const unsigned char *>(aes_ct.c_str()), aes_ct.size());
+
   auto enc_st = cur_time;
   auto ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
   auto enc_ed = cur_time;
@@ -79,9 +92,23 @@ void test(int iter_times, int attribute_num) {
   }
   auto dec_ori_ed = cur_time;
 
+  unsigned char aes_key[4096];
+  element_to_bytes(aes_key, ibe_plaintext);
+
   auto dec_re_st = cur_time;
   plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, &attributes, "attributes");
   auto dec_re_ed = cur_time;
+
+  unsigned char aes_key_re[4096];
+  element_to_bytes(aes_key_re, plaintext2);
+
+  // Decrypt the message
+  std::string decryptedMessage = AESDecrypt(aes_ct, key);
+  std::cout << "Decrypted: " << decryptedMessage << std::endl;
+  std::string decryptedMessage2 = AESDecrypt(aes_ct, aes_key);
+  std::cout << "Decrypted2: " << decryptedMessage2 << std::endl;
+  std::string decryptedMessage3 = AESDecrypt(aes_ct, aes_key_re);
+  std::cout << "Decrypted3: " << decryptedMessage3 << std::endl;
 
   std::cout << "/*************************** Test Results ***************************/\n";
   std::cout << "Keygen for id time: " << duration_time(keygen_id_end, keygen_id_start) / iter_times << " (us)\n";
@@ -94,7 +121,8 @@ void test(int iter_times, int attribute_num) {
 }
 
 int main() {
-  for (int i = 5; i <= 30; i += 5) {
-    test(50, i);
-  }
+  //for (int i = 5; i <= 30; i += 5)
+  test(1, 10);
+
+  return 0;
 }

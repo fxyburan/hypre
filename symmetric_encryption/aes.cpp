@@ -4,67 +4,79 @@
 
 #include "symmetric_encryption/aes.hpp"
 
-void aes_encrypt(const unsigned char *plaintext,
-                 int plaintext_len,
-                 const unsigned char *key,
-                 const unsigned char *iv,
-                 unsigned char *ciphertext) {
-  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
-  EVP_EncryptUpdate(ctx, ciphertext, &plaintext_len, plaintext, plaintext_len);
-  EVP_EncryptFinal_ex(ctx, ciphertext + plaintext_len, &plaintext_len);
-  EVP_CIPHER_CTX_free(ctx);
+// Function to print the hexadecimal representation of a buffer
+void PrintHex(const unsigned char *buffer, size_t length) {
+  for (size_t i = 0; i < length; ++i) {
+    std::cout << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(buffer[i]);
+  }
+  std::cout << std::dec << std::endl;
 }
 
-void aes_decrypt(const unsigned char *ciphertext,
-                 int ciphertext_len,
-                 const unsigned char *key,
-                 const unsigned char *iv,
-                 unsigned char *plaintext) {
+// Function to perform AES encryption
+std::string AESEncrypt(const unsigned char *plaintext, size_t plaintext_length, const unsigned char *key) {
+  // Generate a random IV
+  unsigned char iv[AES_BLOCK_SIZE];
+  RAND_bytes(iv, AES_BLOCK_SIZE);
+
+  // Set up the encryption context
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
-  EVP_DecryptUpdate(ctx, plaintext, &ciphertext_len, ciphertext, ciphertext_len);
-  EVP_DecryptFinal_ex(ctx, plaintext + ciphertext_len, &ciphertext_len);
+  EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+  // Perform the encryption
+  int ciphertext_length = plaintext_length + AES_BLOCK_SIZE;
+  auto *ciphertext = new unsigned char[ciphertext_length];
+  int len;
+  EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_length);
+  ciphertext_length = len;
+  EVP_EncryptFinal_ex(ctx, ciphertext + len, &len);
+  ciphertext_length += len;
+
+  // Combine the IV and ciphertext
+  auto *fullCiphertext = new unsigned char[AES_BLOCK_SIZE + ciphertext_length];
+  std::memcpy(fullCiphertext, iv, AES_BLOCK_SIZE);
+  std::memcpy(fullCiphertext + AES_BLOCK_SIZE, ciphertext, ciphertext_length);
+
+  // Clean up
   EVP_CIPHER_CTX_free(ctx);
+  delete[] ciphertext;
+
+  // Convert the result to a string (base64 encoding)
+  std::string result(reinterpret_cast<char *>(fullCiphertext), AES_BLOCK_SIZE + ciphertext_length);
+  delete[] fullCiphertext;
+
+  return result;
 }
 
-//int main() {
-//  // Initialize OpenSSL library
-//  OpenSSL_add_all_algorithms();
-//
-//  const int KEY_SIZE = 256; // Key size in bits
-//  const int BLOCK_SIZE = AES_BLOCK_SIZE; // Block size in bytes
-////  unsigned char key[KEY_SIZE / 8]; // Key buffer
-////  unsigned char iv[BLOCK_SIZE]; // Initialization vector (IV) buffer
-//
-//  // Set your key and IV values here (make sure they are of the correct sizes)
-//  // Example:
-//  unsigned char key[] = "0123456789abcdef0123456789abcdef";
-//  unsigned char iv[] = "0123456789abcdef";
-//
-//  const char *plaintext = "This is the plaintext to encrypt.";
-//  int plaintext_len = strlen(plaintext);
-//
-//  unsigned char ciphertext[plaintext_len + BLOCK_SIZE]; // Buffer for ciphertext
-//  unsigned char decryptedtext[plaintext_len]; // Buffer for decrypted plaintext
-//
-//  // Perform encryption
-//  aes_encrypt(reinterpret_cast<const unsigned char *>(plaintext), plaintext_len, key, iv, ciphertext);
-//
-//  // Print the encrypted ciphertext
-//  std::cout << "Ciphertext: ";
-//  for (int i = 0; i < plaintext_len + BLOCK_SIZE; ++i) {
-//    printf("%02x", ciphertext[i]);
-//  }
-//  std::cout << std::endl;
-//
-//  // Perform decryption
-//  aes_decrypt(ciphertext, plaintext_len, key, iv, decryptedtext);
-//  decryptedtext[plaintext_len] = '\0';
-//
-//  // Print the decrypted plaintext
-//  std::cout << "Decrypted Text: " << decryptedtext << std::endl;
-//
-//  return 0;
-//}
+// Function to perform AES decryption
+std::string AESDecrypt(const std::string &ciphertext, const unsigned char *key) {
+  // Extract the IV from the ciphertext
+  unsigned char iv[AES_BLOCK_SIZE];
+  std::memcpy(iv, ciphertext.c_str(), AES_BLOCK_SIZE);
+
+  // Set up the decryption context
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv);
+
+  // Perform the decryption
+  int plaintext_length = ciphertext.size() - AES_BLOCK_SIZE;
+  auto *plaintext = new unsigned char[plaintext_length];
+  int len;
+  EVP_DecryptUpdate(ctx,
+                    plaintext,
+                    &len,
+                    reinterpret_cast<const unsigned char *>(ciphertext.c_str()) + AES_BLOCK_SIZE,
+                    plaintext_length);
+  plaintext_length = len;
+  EVP_DecryptFinal_ex(ctx, plaintext + len, &len);
+  plaintext_length += len;
+
+  // Clean up
+  EVP_CIPHER_CTX_free(ctx);
+
+  // Convert the result to a string
+  std::string result(reinterpret_cast<char *>(plaintext), plaintext_length);
+  delete[] plaintext;
+
+  return result;
+}
 
