@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-#include <cassert>
+
 #include "abe.h"
 #include "symmetric_encryption/aes.hpp"
 #include "schemes/hypre/hypre_impl.hpp"
@@ -39,6 +39,7 @@ void test(int iter_times, int attribute_num) {
   string identity = "1801110674";
   auto *attrID = new vector<string>{identity};
 
+  /************************************ KeyGen Start ************************************/
   Key *sk_S;
   auto keygen_s_start = cur_time;
   for (int i = 0; i < iter_times; ++i) {
@@ -52,63 +53,79 @@ void test(int iter_times, int attribute_num) {
     sk_ID = habpreks.keyGen(keys->at(1), keys->at(0), identity);
   }
   auto keygen_id_end = cur_time;
+  /************************************ KeyGen End ************************************/
 
+  /************************************ Encryption Start ************************************/
   element_t key_ele;
   element_init_GT(key_ele, reinterpret_cast<pairing_s *>(habpreks.getPairing()));
   element_random(key_ele);
 
   unsigned char key[4096];
   memset(key, 0, sizeof(key));
-
   element_to_bytes(key, key_ele);
 
+  Ciphertext *ibe_ciphertext;
   std::string msg = "This is the plaintext to e.ncrypt.";
 
   // Encrypt the message using AES
-  std::string aes_ct = AESEncrypt(reinterpret_cast<const unsigned char *>(msg.c_str()), msg.length(), key);
-  std::cout << "Encrypted: ";
-  PrintHex(reinterpret_cast<const unsigned char *>(aes_ct.c_str()), aes_ct.size());
-
+  std::string aes_ct;
   auto enc_st = cur_time;
-  auto ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
+  for (int i = 0; i < iter_times; ++i) {
+    ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
+    aes_ct = AESEncrypt(reinterpret_cast<const unsigned char *>(msg.c_str()), msg.length(), key);
+  }
   auto enc_ed = cur_time;
+  /************************************ Encryption End ************************************/
 
+  /************************************ RKGen Start ************************************/
   Ciphertext *rk, *reEncryptedCT;
   auto rkgen_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     rk = habpreks.rkGen(keys->at(1), sk_ID, policy);
   }
   auto rkgen_ed = cur_time;
+  /************************************ RKGen End ************************************/
+
+  /************************************ Re-encryption Start ************************************/
   auto renc_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     reEncryptedCT = habpreks.reEnc(keys->at(1), rk, ibe_ciphertext);
   }
   auto renc_ed = cur_time;
+  /************************************ Re-encryption End ************************************/
 
-  element_s *ibe_plaintext, *plaintext2;
+  /************************************ Decryption-ORI Start ************************************/
+  unsigned char aes_key[4096];
+  element_s *ibe_plaintext;
+  std::string decryptedMessage2;
   auto dec_ori_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     ibe_plaintext = habpreks.decrypt(ibe_ciphertext, sk_ID, attrID, "identity");
+    element_to_bytes(aes_key, ibe_plaintext);
+    decryptedMessage2 = AESDecrypt(aes_ct, aes_key);
   }
   auto dec_ori_ed = cur_time;
+  /************************************ Decryption-ORI End ************************************/
 
-  unsigned char aes_key[4096];
-  element_to_bytes(aes_key, ibe_plaintext);
-
-  auto dec_re_st = cur_time;
-  plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, &attributes, "attributes");
-  auto dec_re_ed = cur_time;
-
+  /************************************ Decryption-RE Start ************************************/
   unsigned char aes_key_re[4096];
-  element_to_bytes(aes_key_re, plaintext2);
+  std::string decryptedMessage3;
+  element_s *plaintext2;
+  auto dec_re_st = cur_time;
+  for (int i = 0; i < iter_times; ++i) {
+    plaintext2 = habpreks.decrypt(reEncryptedCT, sk_S, &attributes, "attributes");
+    element_to_bytes(aes_key_re, plaintext2);
+    decryptedMessage3 = AESDecrypt(aes_ct, aes_key_re);
+  }
+  auto dec_re_ed = cur_time;
+  /************************************ Decryption-RE End ************************************/
 
-  // Decrypt the message
-  std::string decryptedMessage = AESDecrypt(aes_ct, key);
-  std::cout << "Decrypted: " << decryptedMessage << std::endl;
-  std::string decryptedMessage2 = AESDecrypt(aes_ct, aes_key);
-  std::cout << "Decrypted2: " << decryptedMessage2 << std::endl;
-  std::string decryptedMessage3 = AESDecrypt(aes_ct, aes_key_re);
-  std::cout << "Decrypted3: " << decryptedMessage3 << std::endl;
+  if (msg == decryptedMessage2) {
+    std::cout << "Decryption-ORI Success.\n";
+  }
+  if (msg == decryptedMessage3) {
+    std::cout << "Decryption-RE Success.\n";
+  }
 
   std::cout << "/*************************** Test Results ***************************/\n";
   std::cout << "Keygen for id time: " << duration_time(keygen_id_end, keygen_id_start) / iter_times << " (us)\n";
