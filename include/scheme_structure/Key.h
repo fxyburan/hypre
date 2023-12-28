@@ -42,6 +42,8 @@ class Key {
   std::vector<std::string> GetAttributes();
 
   void printKey();
+
+  uint64_t GetKeyLength();
 };
 
 #endif //ABELIB_KEY_H

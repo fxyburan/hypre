@@ -3,3 +3,4 @@ bin
 build
 .idea
 *.DS_Store
+test_data

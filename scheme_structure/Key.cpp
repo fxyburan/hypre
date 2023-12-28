@@ -139,6 +139,29 @@ void Key::printKey() {
   }
   cout << endl;
 }
+
+uint64_t Key::GetKeyLength() {
+  map<string, element_s *>::iterator it;
+  uint64_t len = 0;
+  for (it = g1_components->begin(); it != g1_components->end(); ++it) {
+    len += element_length_in_bytes(it->second);
+  }
+
+  for (it = g2_components->begin(); it != g2_components->end(); ++it) {
+    len += element_length_in_bytes(it->second);
+  }
+
+  for (it = gt_components->begin(); it != gt_components->end(); ++it) {
+    len += element_length_in_bytes(it->second);
+  }
+
+  for (it = zr_components->begin(); it != zr_components->end(); ++it) {
+    len += element_length_in_bytes(it->second);
+  }
+
+  return len;
+}
+
 void Key::SetAttributes(std::vector<std::string> attributes) {
   attributes_ = std::move(attributes);
 }

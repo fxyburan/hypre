@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include <algorithm>
 
 #include "abe.h"
 #include "symmetric_encryption/aes.hpp"
@@ -16,9 +17,18 @@ const std::vector<std::string> U{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j
                                  "ww", "xx", "yy", "zz", "aaa", "bbb", "ccc", "ddd", "eee", "fff",
                                  "ggg", "hhh", "iii", "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp",
                                  "qqq", "rrr", "sss", "ttt", "uuu", "vvv", "www", "xxx", "yyy", "zzz"};
+unsigned int *rd_data;
+void test(int iter_times, int attribute_num, int data_length) {
 
-void test(int iter_times, int attribute_num) {
+  using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned int>;
+  rd_data = new unsigned int[data_length];
+  random_bytes_engine rbe;
+  for (int i = 0; i < data_length; ++i) {
+    *(rd_data + i) = rbe();
+  }
+
   std::cout << "Attribute numbers: " << attribute_num << std::endl;
+  std::cout << "Data length: " << data_length << std::endl;
   HyPRE_Impl habpreks;
   auto keys = habpreks.setUp();
 
@@ -65,16 +75,23 @@ void test(int iter_times, int attribute_num) {
   element_to_bytes(key, key_ele);
 
   Ciphertext *ibe_ciphertext;
-  std::string msg = "This is the plaintext to e.ncrypt.";
+  //std::string msg = "This is the plaintext to e.ncrypt.";
 
   // Encrypt the message using AES
   std::string aes_ct;
+
   auto enc_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     ibe_ciphertext = habpreks.encrypt(key_ele, identity, keys->at(1));
-    aes_ct = AESEncrypt(reinterpret_cast<const unsigned char *>(msg.c_str()), msg.length(), key);
   }
   auto enc_ed = cur_time;
+
+  auto aes_enc_st = cur_time;
+  for (int i = 0; i < iter_times; ++i) {
+    aes_ct = AESEncrypt(reinterpret_cast<const unsigned char *>(rd_data), data_length, key);
+  }
+  auto aes_enc_ed = cur_time;
+
   /************************************ Encryption End ************************************/
 
   /************************************ RKGen Start ************************************/
@@ -82,6 +99,7 @@ void test(int iter_times, int attribute_num) {
   auto rkgen_st = cur_time;
   for (int i = 0; i < iter_times; ++i) {
     rk = habpreks.rkGen(keys->at(1), sk_ID, policy);
+    auto rk_len = rk->getCiphertextLen();
   }
   auto rkgen_ed = cur_time;
   /************************************ RKGen End ************************************/
@@ -120,26 +138,39 @@ void test(int iter_times, int attribute_num) {
   auto dec_re_ed = cur_time;
   /************************************ Decryption-RE End ************************************/
 
-  if (msg == decryptedMessage2) {
-    std::cout << "Decryption-ORI Success.\n";
-  }
-  if (msg == decryptedMessage3) {
-    std::cout << "Decryption-RE Success.\n";
-  }
+//  if (msg == decryptedMessage2) {
+//    std::cout << "Decryption-ORI Success.\n";
+//  }
+//  if (msg == decryptedMessage3) {
+//    std::cout << "Decryption-RE Success.\n";
+//  }
+
+  delete[] rd_data;
 
   std::cout << "/*************************** Test Results ***************************/\n";
   std::cout << "Keygen for id time: " << duration_time(keygen_id_end, keygen_id_start) / iter_times << " (us)\n";
   std::cout << "Keygen for attrs time: " << duration_time(keygen_s_end, keygen_s_start) / iter_times << " (us)\n";
   std::cout << "Encrypt time: " << duration_time(enc_ed, enc_st) / iter_times << " (us)\n";
+  std::cout << "AES Encrypt time: " << duration_time(aes_enc_ed, aes_enc_st) / iter_times << " (us)\n";
   std::cout << "RKGen time: " << duration_time(rkgen_ed, rkgen_st) / iter_times << " (us)\n";
   std::cout << "ReEncrypt time: " << duration_time(renc_ed, renc_st) / iter_times << " (us)\n";
   std::cout << "DecryptOri time: " << duration_time(dec_ori_ed, dec_ori_st) / iter_times << " (us)\n";
-  std::cout << "DecryptRe time: " << duration_time(dec_re_ed, dec_re_st) / iter_times << " (us)\n";
+  std::cout << "DecryptRe time: " << duration_time(dec_re_ed, dec_re_st) / iter_times << " (us)\n\n";
+
+//  std::cout << "sk(ID) len: " << sk_ID->GetKeyLength() << "\n";
+//  std::cout << "sk(S) len: " << sk_S->GetKeyLength() << "\n";
+//  std::cout << "ct len: " << ibe_ciphertext->getCiphertextLen() << "\n";
+//  std::cout << "re_ct len: " << reEncryptedCT->getCiphertextLen() << "\n";
+//  std::cout << "rk len: " << rk->getCiphertextLen() << "\n";
+//  std::cout << "aes ct len: " << aes_ct.length() << "\n\n";
+
 }
 
 int main() {
   //for (int i = 5; i <= 30; i += 5)
-  test(1, 10);
+  for (int i = 2; i <= 30; i += 2) {
+    test(100, 10, 1 << i);
+  }
 
   return 0;
 }
